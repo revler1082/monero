@@ -377,7 +377,7 @@ namespace cryptonote
       std::list<blobdata> have_tx;
       std::list<crypto::hash> need_tx;
 
-      for (auto tx_hash_itr = arg.tx_hashes.begin(); tx_hash_itr != arg.tx_hashes.end(); tx_hash_itr++)
+      for (auto tx_hash_itr = arg.b.block.tx_hashes.begin(); tx_hash_itr != arg.b.block.tx_hashes.end(); tx_hash_itr++)
       {
         transaction tx;
         if(m_core.get_pool_transaction(*tx_hash_itr, tx))
