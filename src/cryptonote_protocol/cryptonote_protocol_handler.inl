@@ -363,6 +363,113 @@ namespace cryptonote
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
+  int t_cryptonote_protocol_handler<t_core>::handle_notify_new_compact_block(int command, NOTIFY_NEW_COMPACT_BLOCK::request& arg, cryptonote_connection_context& context)
+  {
+      LOG_PRINT_CCONTEXT_L2("NOTIFY_NEW_COMPACT_COMPACT");
+      if(context.m_state != cryptonote_connection_context::state_normal)
+      {
+        return 1;
+      }
+
+      // does it matter if called again in normal notify_new_block?
+      m_core.pause_mine();
+
+      std::list<blobdata> have_tx;
+      std::list<crypto::hash> need_tx;
+
+      for (auto tx_hash_itr = arg.tx_hashes.begin(); tx_hash_itr != arg.tx_hashes.end(); tx_hash_itr++)
+      {
+        transaction tx;
+        if(m_core.get_pool_transaction(*tx_hash_itr, tx))
+        {
+          have_tx.push_back(tx_to_blob(tx));
+        }
+        else
+        {
+          need_tx.push_back(*tx_hash_itr);
+        }
+      }
+
+      // request non-mempool txs
+      NOTIFY_REQUEST_GET_OBJECTS::request need_req;
+      for (auto tx_hash_itr = need_tx.begin(); tx_hash_itr != non_mempool_txs.end(); tx_hash_itr++)
+      {
+        need_req.txs.push_back(*tx_hash_itr);
+      }
+
+      NOTIFY_RESPONSE_GET_OBJECTS::request need_rsp;
+      if(!m_core.handle_get_objects(need_req, need_rsp, context))
+      {
+        LOG_ERROR_CCONTEXT("failed to handle request NOTIFY_REQUEST_GET_OBJECTS, dropping connection");
+        m_p2p->drop_connection(context);
+        return 1;
+      }
+
+      LOG_PRINT_CCONTEXT_L2(
+        "-->>NOTIFY_RESPONSE_GET_OBJECTS: blocks.size()=" <<
+        rsp.blocks.size() <<
+        ", txs.size()=" <<
+        rsp.txs.size() <<
+        ", rsp.m_current_blockchain_height=" <<
+        rsp.current_blockchain_height <<
+        ", missed_ids.size()=" <<
+        rsp.missed_ids.size()
+      );
+
+      for(auto tx_blob_it = need_rsp.txs.begin(); tx_blob_it != rsp.txs.end(); tx_blob_it++)
+      {
+        have_tx.push_back(*tx_blob_it);
+      }
+
+      block_complete_entry b;
+      b.block = arg.b.block;
+      b.txs = have_tx;
+
+      std::list<block_complete_entry> blocks;
+      blocks.push_back(b);
+      m_core.prepare_handle_incoming_blocks(blocks);
+      for(auto tx_blob_it = b.txs.begin(); tx_blob_it != b.txs.end(); tx_blob_it++)
+      {
+        cryptonote::tx_verification_context tvc = AUTO_VAL_INIT(tvc);
+        m_core.handle_incoming_tx(*tx_blob_it, tvc, true, true);
+        if(tvc.m_verifivation_failed)
+        {
+          LOG_PRINT_CCONTEXT_L1("Block verification failed: transaction verification failed, dropping connection");
+          m_p2p->drop_connection(context);
+          m_core.cleanup_handle_incoming_blocks();
+          m_core.resume_mine();
+          return 1;
+        }
+      }
+
+      block_verification_context bvc = boost::value_initialized<block_verification_context>();
+      m_core.handle_incoming_block(b.block, bvc); // got block from handle_notify_new_block
+      m_core.cleanup_handle_incoming_blocks(true);
+      m_core.resume_mine();
+      if(bvc.m_verifivation_failed)
+      {
+        LOG_PRINT_CCONTEXT_L0("Block verification failed, dropping connection");
+        m_p2p->drop_connection(context);
+        return 1;
+      }
+      if(bvc.m_added_to_main_chain)
+      {
+        ++arg.hop;
+        //TODO: Add here announce protocol usage
+        relay_compact_block(arg, context);
+      }else if(bvc.m_marked_as_orphaned)
+      {
+        context.m_state = cryptonote_connection_context::state_synchronizing;
+        NOTIFY_REQUEST_CHAIN::request r = boost::value_initialized<NOTIFY_REQUEST_CHAIN::request>();
+        m_core.get_short_chain_history(r.block_ids);
+        LOG_PRINT_CCONTEXT_L2("-->>NOTIFY_REQUEST_CHAIN: m_block_ids.size()=" << r.block_ids.size() );
+        post_notify<NOTIFY_REQUEST_CHAIN>(r, context);
+      }
+
+      return 1;
+  }
+  //------------------------------------------------------------------------------------------------------------------------
+  template<class t_core>
   int t_cryptonote_protocol_handler<t_core>::handle_notify_new_transactions(int command, NOTIFY_NEW_TRANSACTIONS::request& arg, cryptonote_connection_context& context)
   {
     LOG_PRINT_CCONTEXT_L2("NOTIFY_NEW_TRANSACTIONS");
@@ -777,6 +884,12 @@ namespace cryptonote
   bool t_cryptonote_protocol_handler<t_core>::relay_block(NOTIFY_NEW_BLOCK::request& arg, cryptonote_connection_context& exclude_context)
   {
     return relay_post_notify<NOTIFY_NEW_BLOCK>(arg, exclude_context);
+  }
+  //------------------------------------------------------------------------------------------------------------------------
+  template<class t_core>
+  bool t_cryptonote_protocol_handler<t_core>::relay_compact_block(NOTIFY_NEW_BLOCK_COMPACT::request& arg, cryptonote_connection_context& exclude_context)
+  {
+    return relay_post_notify<NOTIFY_NEW_BLOCK_COMPACT>(arg, exclude_context);
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>

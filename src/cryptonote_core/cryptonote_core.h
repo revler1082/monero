@@ -141,7 +141,7 @@ namespace cryptonote
       * @note see Blockchain::cleanup_handle_incoming_blocks
       */
      bool cleanup_handle_incoming_blocks(bool force_sync = false);
-     	     	
+
      /**
       * @brief check the size of a block against the current maximum
       *
@@ -392,6 +392,13 @@ namespace cryptonote
       * @note see tx_memory_pool::get_transactions
       */
      bool get_pool_transactions(std::list<transaction>& txs) const;
+
+     /**
+      * @copydoc tx_memory_pool::get_transaction
+      *
+      * @note see tx_memory_pool::get_transaction
+      */
+     bool get_pool_transaction(const crypto:hash& id, transaction& tx) const;
 
      /**
       * @copydoc tx_memory_pool::get_pool_transactions_and_spent_keys_info
