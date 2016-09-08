@@ -377,7 +377,16 @@ namespace cryptonote
       std::list<blobdata> have_tx;
       std::list<crypto::hash> need_tx;
 
-      for (auto tx_hash_itr = arg.b.block.tx_hashes.begin(); tx_hash_itr != arg.b.block.tx_hashes.end(); tx_hash_itr++)
+      block deser_blk;
+      if(!parse_and_validate_block_from_blob(arg.b.block, deser_blk))
+      {
+        LOG_ERROR_CCONTEXT("sent wrong block: failed to parse and validate block: \r\n"
+          << epee::string_tools::buff_to_hex_nodelimer(arg.b.block) << "\r\n dropping connection");
+        m_p2p->drop_connection(context);
+        return 1;
+      }
+
+      for (auto tx_hash_itr = deser_blk.tx_hashes.begin(); tx_hash_itr != deser_blk.tx_hashes.end(); tx_hash_itr++)
       {
         transaction tx;
         if(m_core.get_pool_transaction(*tx_hash_itr, tx))
@@ -392,7 +401,7 @@ namespace cryptonote
 
       // request non-mempool txs
       NOTIFY_REQUEST_GET_OBJECTS::request need_req;
-      for (auto tx_hash_itr = need_tx.begin(); tx_hash_itr != non_mempool_txs.end(); tx_hash_itr++)
+      for (auto tx_hash_itr = need_tx.begin(); tx_hash_itr != need_tx.end(); tx_hash_itr++)
       {
         need_req.txs.push_back(*tx_hash_itr);
       }
@@ -407,16 +416,16 @@ namespace cryptonote
 
       LOG_PRINT_CCONTEXT_L2(
         "-->>NOTIFY_RESPONSE_GET_OBJECTS: blocks.size()=" <<
-        rsp.blocks.size() <<
+        need_rsp.blocks.size() <<
         ", txs.size()=" <<
-        rsp.txs.size() <<
+        need_rsp.txs.size() <<
         ", rsp.m_current_blockchain_height=" <<
-        rsp.current_blockchain_height <<
+        need_rsp.current_blockchain_height <<
         ", missed_ids.size()=" <<
-        rsp.missed_ids.size()
+        need_rsp.missed_ids.size()
       );
 
-      for(auto tx_blob_it = need_rsp.txs.begin(); tx_blob_it != rsp.txs.end(); tx_blob_it++)
+      for(auto tx_blob_it = need_rsp.txs.begin(); tx_blob_it != need_rsp.txs.end(); tx_blob_it++)
       {
         have_tx.push_back(*tx_blob_it);
       }
@@ -887,9 +896,9 @@ namespace cryptonote
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
-  bool t_cryptonote_protocol_handler<t_core>::relay_compact_block(NOTIFY_NEW_BLOCK_COMPACT::request& arg, cryptonote_connection_context& exclude_context)
+  bool t_cryptonote_protocol_handler<t_core>::relay_compact_block(NOTIFY_NEW_COMPACT_BLOCK::request& arg, cryptonote_connection_context& exclude_context)
   {
-    return relay_post_notify<NOTIFY_NEW_BLOCK_COMPACT>(arg, exclude_context);
+    return relay_post_notify<NOTIFY_NEW_COMPACT_BLOCK>(arg, exclude_context);
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
