@@ -1222,5 +1222,15 @@ namespace cryptonote
      * that implicit data.
      */
     bool expand_transaction_2(transaction &tx, const crypto::hash &tx_prefix_hash, const std::vector<std::vector<rct::ctkey>> &pubkeys);
+    
+    /**
+     * @brief gets coins generated up to a certain block height
+     *
+     * @param height the height to get coin generation for 
+     * @param generated_coins the actual number of coins generated up to the specified height
+     *
+     * @return false if an unexpected exception occurs, else true
+     */
+    bool get_block_already_generated_coins(const uint64_t& height, uint64_t generated_coins);
   };
 }  // namespace cryptonote

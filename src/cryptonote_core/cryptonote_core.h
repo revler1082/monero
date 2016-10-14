@@ -601,11 +601,11 @@ namespace cryptonote
      size_t get_block_sync_size() const { return block_sync_size; }
 
      /**
-      * @brief get the sum of coinbase tx amounts between blocks
+      * @copydoc Blockchain::get_block_already_generated_coins
       *
-      * @return the number of blocks to sync in one go
+      * @note see Blockchain::get_block_already_generated_coins
       */
-     std::pair<uint64_t, uint64_t> get_coinbase_tx_sum(const uint64_t start_offset, const size_t count);
+      bool core::get_block_already_generated_coins(const uint64_t& height, uint64_t& generated_coins)
 
    private:
 

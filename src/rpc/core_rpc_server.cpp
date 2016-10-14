@@ -1268,9 +1268,59 @@ namespace cryptonote
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::on_get_coinbase_tx_sum(const COMMAND_RPC_GET_COINBASE_TX_SUM::request& req, COMMAND_RPC_GET_COINBASE_TX_SUM::response& res, epee::json_rpc::error& error_resp)
   {
-    std::pair<uint64_t, uint64_t> amounts = m_core.get_coinbase_tx_sum(req.height, req.count);
-    res.emission_amount = amounts.first;
-    res.fee_amount = amounts.second;
+    if(!check_core_busy())
+    {
+      error_resp.code = CORE_RPC_ERROR_CODE_CORE_BUSY;
+      error_resp.message = "Core is busy.";
+      return false;
+    }
+    
+    uint64_t end_height = req.height + req.count - 1;
+    const uint64_t bc_height = m_core.get_current_blockchain_height();
+    if (req.height >= bc_height || end_height >= bc_height || req.height > end_height)
+    {
+      error_resp.code = CORE_RPC_ERROR_CODE_TOO_BIG_HEIGHT;
+      error_resp.message = "Invalid height/count parameters.";
+      return false;
+    }
+    
+    uint64_t start_height_coins, end_height_coins;
+    if(m_core.get_block_already_generated_coins(req.height, start_height_coins)
+      && m_core.get_block_already_generated_coins(end_height + 1, end_height_coins))
+    {
+      uint64_t emission_amount = end_height_coins - start_height_coins;
+      uint64_t fee_amount = 0;
+      block blk;
+      crypto::hash block_hash;
+      for (uint64_t h = req.start_height; h <= end_height; ++h)
+      {
+        block_hash = m_core.get_block_id_by_height(h);
+        if (!m_core.get_block_by_hash(block_hash, blk))
+        {
+          error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
+          error_resp.message = "Internal error: can't get block by height. Height = " + boost::lexical_cast<std::string>(h) + ". Hash = " + epee::string_tools::pod_to_hex(block_hash) + '.';
+          return false;
+        }
+        
+        if(m_core.get_transactions(blk.tx_hashes, txs, missed_txs))
+        {      
+          BOOST_FOREACH(const auto& tx, txs)
+          {
+            fee_amount += get_tx_fee(tx);
+          }
+        }
+        else
+        {
+          error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
+          error_resp.message = "Internal error: can't get transactions for block with height = " +boost::lexical_cast<std::string>(h) + ", hash = " + epee::string_tools::pod_to_hex(block_hash) + '.';
+          return false;        
+        }
+      }
+    }
+    
+    res.emission_amount = emission_amount;
+    res.fee_amount = fee_amount;
+    res.status = CORE_RPC_STATUS_OK;
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
