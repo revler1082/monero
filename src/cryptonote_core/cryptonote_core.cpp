@@ -616,7 +616,7 @@ namespace cryptonote
     return true;
   }
   //-----------------------------------------------------------------------------------------------
-  bool core::get_block_already_generated_coins(const uint64_t& height, uint64_t& generated_coins)
+  bool core::get_block_already_generated_coins(const uint64_t& height, uint64_t& generated_coins) const
   {    
     return m_blockchain_storage.get_block_already_generated_coins(height, generated_coins);
   }
