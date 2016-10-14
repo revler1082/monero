@@ -3827,7 +3827,7 @@ bool Blockchain::for_all_outputs(std::function<bool(uint64_t amount, const crypt
   return m_db->for_all_outputs(f);;
 }
 
-bool Blockchain::get_block_already_generated_coins(const uint64_t& height, uint64_t& generated_coins)
+bool Blockchain::get_block_already_generated_coins(const uint64_t& height, uint64_t& generated_coins) const
 {
   try
   {
