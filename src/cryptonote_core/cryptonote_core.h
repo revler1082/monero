@@ -605,7 +605,7 @@ namespace cryptonote
       *
       * @note see Blockchain::get_block_already_generated_coins
       */
-      bool core::get_block_already_generated_coins(const uint64_t& height, uint64_t& generated_coins)
+      bool get_block_already_generated_coins(const uint64_t& height, uint64_t& generated_coins) const;
 
    private:
 
