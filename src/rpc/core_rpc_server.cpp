@@ -1275,9 +1275,9 @@ namespace cryptonote
       return false;
     }
     
-    uint64_t end_height = req.height + req.count - 1;
+    uint64_t end_height = req.height + req.count;
     const uint64_t bc_height = m_core.get_current_blockchain_height();
-    if (req.height >= bc_height || end_height >= bc_height || req.height > end_height)
+    if (req.height >= bc_height || end_height > bc_height + 1 || req.height > end_height)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_TOO_BIG_HEIGHT;
       error_resp.message = "Invalid height/count parameters.";
@@ -1286,9 +1286,9 @@ namespace cryptonote
     
     uint64_t start_height_coins, end_height_coins;
     if(m_core.get_block_already_generated_coins(req.height, start_height_coins)
-      && m_core.get_block_already_generated_coins(end_height + 1, end_height_coins))
+      && m_core.get_block_already_generated_coins(end_height, end_height_coins))
     {
-      uint64_t emission_amount = end_height_coins - start_height_coins;
+      uint64_t emission_amount = req.height == end_height - 1 ? start_height_coins : end_height_coins - start_height_coins;
       uint64_t fee_amount = 0;
       block blk;
       crypto::hash block_hash;

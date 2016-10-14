@@ -1231,6 +1231,6 @@ namespace cryptonote
      *
      * @return false if an unexpected exception occurs, else true
      */
-    bool get_block_already_generated_coins(const uint64_t& height, uint64_t generated_coins);
+    bool get_block_already_generated_coins(const uint64_t& height, uint64_t& generated_coins);
   };
 }  // namespace cryptonote
