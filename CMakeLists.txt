@@ -309,6 +309,14 @@ link_directories(${UNBOUND_LIBRARY_DIRS})
 # Final setup for rapidjson
 include_directories(external/rapidjson)
 
+# Final setup for hidapi
+include_directories(${HIDAPI_INCLUDE})
+link_directories(${HIDAPI_LIBRARY_DIRS})
+
+# Final setup for trezor
+#include_directories(${TREZOR_INCLUDE})
+#link_directories(${TREZOR_LIBRARY_DIRS})
+
 # Final setup for liblmdb
 include_directories(${LMDB_INCLUDE})
 

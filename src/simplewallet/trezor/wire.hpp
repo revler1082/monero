@@ -17,6 +17,8 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#pragma once 
+
 #ifdef _WIN32
 #include <winsock2.h>
 #else
@@ -29,6 +31,8 @@
 #include <string>
 #include <vector>
 #include <array>
+
+#include "hid.hpp"
 
 namespace simplewallet
 {
@@ -63,18 +67,16 @@ namespace simplewallet
           // skip foreign interfaces
           if (i->interface_number > 0) 
           {
-              LOG_PRINT_L2("trezor::device_info.enumerate_connected_devices() -> " << "skipping, invalid device (" << i->interface_number << ")");
               continue;
           }
           // skip debug interface
           if (i->usage_page == 0xFF01) 
           {
-              LOG_PRINT_L2("trezor::device_info.enumerate_connected_devices() -> " << "skipping debug interface");            
               continue;
           }
           // skip fido interface
-          if (i->usage_page == 0xF1D0) {
-              LOG_PRINT_L2("trezor::device_info.enumerate_connected_devices() -> " << "skipping fido interface");            
+          if (i->usage_page == 0xF1D0) 
+          {
               continue;
           }
           

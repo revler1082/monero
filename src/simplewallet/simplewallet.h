@@ -47,6 +47,9 @@
 #include "wallet/password_container.h"
 #include "crypto/crypto.h"  // for definition of crypto::secret_key
 
+#include "hidapi.h"
+//#include "trezor/trezor.h"
+
 /*!
  * \namespace cryptonote
  * \brief Holds cryptonote related classes and helpers.
@@ -109,6 +112,7 @@ namespace cryptonote
     bool set_refresh_type(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_confirm_missing_payment_id(const std::vector<std::string> &args = std::vector<std::string>());
     bool help(const std::vector<std::string> &args = std::vector<std::string>());
+    bool trezor_ctrl(const std::vector<std::string>& args);
     bool start_mining(const std::vector<std::string> &args);
     bool stop_mining(const std::vector<std::string> &args);
     bool save_bc(const std::vector<std::string>& args);

@@ -98,3 +98,20 @@ else()
 endif()
 
 add_subdirectory(db_drivers)
+
+find_package(hidapi)
+
+if(NOT HIDAPI_INCLUDE_DIRS OR STATIC)
+  message(STATUS "Using hidapi from local source tree (/external/hidapi)")  
+  add_subdirectory(hidapi)
+  set_property(TARGET hidapi PROPERTY FOLDER "external")  
+  set(HIDAPI_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/hidapi/hidapi" PARENT_SCOPE)
+  set(HIDAPI_LIBRARY "hidapi" PARENT_SCOPE)
+  set(HIDAPI_LIBRARY_DIRS "" PARENT_SCOPE)
+endif()
+
+#add_subdirectory(trezor)
+#set_property(TARGET trezor PROPERTY FOLDER "external")  
+#set(TREZOR_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/trezor" PARENT_SCOPE)
+#set(TREZOR_LIBRARY "trezor" PARENT_SCOPE)
+#set(TREZOR_LIBRARY_DIRS "" PARENT_SCOPE)

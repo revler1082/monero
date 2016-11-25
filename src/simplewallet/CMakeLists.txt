@@ -27,12 +27,28 @@
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 set(simplewallet_sources
-  simplewallet.cpp)
+  simplewallet.cpp
+  trezor/trezor.cpp
+  trezor/core.hpp
+  trezor/hid.hpp
+  trezor/utils.hpp
+  trezor/wire.hpp)
 
 set(simplewallet_headers)
 
 set(simplewallet_private_headers
   simplewallet.h)
+
+if (WIN32)
+  set(OS_LIBRARIES wsock32 ws2_32 z)
+  add_definitions(-D_WIN32_WINNT=0x6000)
+else(WIN32)
+  if (APPLE)
+    set(OS_LIBRARIES pthread)
+  else(APPLE)
+    set(OS_LIBRARIES pthread dl z)
+  endif(APPLE)
+endif(WIN32)
 
 monero_private_headers(simplewallet
   ${simplewallet_private_headers})
@@ -49,6 +65,8 @@ target_link_libraries(simplewallet
     common
     mnemonics
     p2p
+    "C:\\Users\\revle\\dev\\monero\\build\\release\\external\\hidapi\\windows\\libhidapi.a"
+    ${HIDAPI_LIBRARY_DIRS}
     ${Boost_CHRONO_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
