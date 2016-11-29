@@ -17,7 +17,7 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once 
+#pragma once
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -58,28 +58,30 @@ namespace simplewallet
       template <typename F>
       device_info_list enumerate_connected_devices(F filter)
       {
+        std::cout << "what the fuck" << std::endl;
         device_info_list list;
         auto *infos = hid::enumerate(0x00, 0x00);
 
         for (auto i = infos; i != nullptr; i = i->next) {
+          std::cout << i->vendor_id << ", " << i->product_id << std::endl;
           // skip unsupported devices
           if (!filter(i)) { continue; }
           // skip foreign interfaces
-          if (i->interface_number > 0) 
+          if (i->interface_number > 0)
           {
               continue;
           }
           // skip debug interface
-          if (i->usage_page == 0xFF01) 
+          if (i->usage_page == 0xFF01)
           {
               continue;
           }
           // skip fido interface
-          if (i->usage_page == 0xF1D0) 
+          if (i->usage_page == 0xF1D0)
           {
               continue;
           }
-          
+
           list.emplace_back
           (
             device_info
@@ -103,10 +105,10 @@ namespace simplewallet
         struct open_error : public std::runtime_error { using std::runtime_error::runtime_error; };
         struct read_error : public std::runtime_error { using std::runtime_error::runtime_error; };
         struct write_error : public std::runtime_error { using std::runtime_error::runtime_error; };
-        
+
         device(device const&) = delete;
         device &operator=(device const&) = delete;
-        
+
         device(char const *path)
         {
           hid = hid::open_path(path);
@@ -118,7 +120,7 @@ namespace simplewallet
         ~device() { hid::close(hid); }
 
         // try writing packet that will be discarded to figure out hid version
-        int try_hid_version() 
+        int try_hid_version()
         {
           int r;
           report_type report;
@@ -144,15 +146,15 @@ namespace simplewallet
 
         void read_buffered(char_type *data, size_type len)
         {
-          for (;;) 
+          for (;;)
           {
             if (read_buffer.empty()) { buffer_report(); }
             size_type n = read_report_from_buffer(data, len);
             if (n < len) {
               data += n;
               len -= n;
-            } 
-            else 
+            }
+            else
             {
               break;
             }
@@ -161,15 +163,15 @@ namespace simplewallet
 
         void write(char_type const *data, size_type len)
         {
-          for (;;) 
+          for (;;)
           {
             size_type n = write_report(data, len);
-            if (n < len) 
+            if (n < len)
             {
               data += n;
               len -= n;
-            } 
-            else 
+            }
+            else
             {
               break;
             }
@@ -204,7 +206,7 @@ namespace simplewallet
           } while (r == 0);
 
           if (r < 0) { throw read_error("HID device read failed"); }
-          if (r > 0) 
+          if (r > 0)
           {
             // copy to the buffer, skip the report number
             char_type rn = report[0];
@@ -223,7 +225,7 @@ namespace simplewallet
           size_type n = min(static_cast<size_type>(63), len);
           size_type report_size = 63 + hid_version;
 
-          switch (hid_version) 
+          switch (hid_version)
           {
             case 1:
               report[0] = 0x3F;

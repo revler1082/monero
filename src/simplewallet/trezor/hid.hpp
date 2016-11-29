@@ -20,7 +20,7 @@
 #pragma once
 
 #include "hidapi.h"
-#include "utils.hpp"
+#include "./utils.hpp"
 
 namespace simplewallet
 {
@@ -80,7 +80,7 @@ namespace simplewallet
       {
         return hid_executor->await([=] { return hid_read_timeout(device, data, length, milliseconds); });
       }
-      
+
     }
   }
 }

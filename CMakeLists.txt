@@ -292,6 +292,9 @@ if (UNIX AND NOT APPLE)
   find_package(Threads)
 endif()
 
+# god I suck with this CMAKE stuff = ON
+option(BUILD_TREZOR_SUPPORT "Include support for Trezor hardware into simplewallet" ON)
+
 add_subdirectory(external)
 
 # Final setup for miniupnpc
@@ -309,14 +312,6 @@ link_directories(${UNBOUND_LIBRARY_DIRS})
 # Final setup for rapidjson
 include_directories(external/rapidjson)
 
-# Final setup for hidapi
-include_directories(${HIDAPI_INCLUDE})
-link_directories(${HIDAPI_LIBRARY_DIRS})
-
-# Final setup for trezor
-#include_directories(${TREZOR_INCLUDE})
-#link_directories(${TREZOR_LIBRARY_DIRS})
-
 # Final setup for liblmdb
 include_directories(${LMDB_INCLUDE})
 
@@ -328,6 +323,9 @@ endif()
 # Final setup for libunwind
 include_directories(${LIBUNWIND_INCLUDE})
 link_directories(${LIBUNWIND_LIBRARY_DIRS})
+
+# Final setup for hidapi
+include_directories(${HIDAPI_INCLUDE})
 
 if(MSVC)
   add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /FIinline_c.h /D__SSE4_1__")
@@ -650,5 +648,3 @@ option(BUILD_GUI_DEPS "Build GUI dependencies." OFF)
 # This is not nice, distribution packagers should not enable this, but depend
 # on libunbound shipped with their distribution instead
 option(INSTALL_VENDORED_LIBUNBOUND "Install libunbound binary built from source vendored with this repo." OFF)
-
-
