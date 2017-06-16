@@ -33,6 +33,7 @@
 #include <boost/uuid/uuid.hpp>
 #include "net/net_utils_base.h"
 #include "p2p_protocol_defs.h"
+#include "rpc/core_rpc_server_commands_defs.h"
 
 namespace nodetool
 {
@@ -110,4 +111,5 @@ namespace nodetool
       return true;
     }
   };
+
 }

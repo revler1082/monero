@@ -47,6 +47,7 @@
 #include "warnings.h"
 #include "net/levin_server_cp2.h"
 #include "p2p_protocol_defs.h"
+#include "rpc/core_rpc_server_commands_defs.h"
 #include "storages/levin_abstract_invoke2.h"
 #include "net_peerlist.h"
 #include "math_helper.h"
@@ -152,6 +153,17 @@ namespace nodetool
       HANDLE_INVOKE_T2(COMMAND_REQUEST_PEER_ID, &node_server::handle_get_peer_id)
 #endif
       HANDLE_INVOKE_T2(COMMAND_REQUEST_SUPPORT_FLAGS, &node_server::handle_get_support_flags)
+      // BEGIN RPC PROXY
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_GET_OUTPUTS, &node_server::handle_get_outs)
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_GET_TRANSACTIONS, &node_server::handle_get_transactions)
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_GET_BLOCKS_FAST, &node_server::handle_get_blocks)
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_GET_BLOCKS_BY_HEIGHT, &node_server::handle_get_blocks_by_height)
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_GET_HASHES_FAST, &node_server::handle_get_hashes)
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_GET_TRANSACTION_POOL_HASHES, &node_server::handle_get_transaction_pool_hashes)
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_IS_KEY_IMAGE_SPENT, &node_server::handle_is_image_spent)
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_SEND_RAW_TX, &node_server::handle_send_raw_tx)
+      HANDLE_INVOKE_T2(COMMAND_RPC_PROXY_GET_OUTPUT_HISTOGRAM, &node_server::handle_get_output_histogram)
+      // END RPC PROXY
       CHAIN_INVOKE_MAP_TO_OBJ_FORCE_CONTEXT(m_payload_handler, typename t_payload_net_handler::connection_context&)
     END_INVOKE_MAP2()
 
@@ -187,6 +199,16 @@ namespace nodetool
     virtual void request_callback(const epee::net_utils::connection_context_base& context);
     virtual void for_each_connection(std::function<bool(typename t_payload_net_handler::connection_context&, peerid_type, uint32_t)> f);
     virtual bool add_ip_fail(uint32_t address);
+    //----------------- i_p2p_rpc_proxy  --------------------------------------------------------
+    virtual bool handle_get_outs(int command, const COMMAND_RPC_GET_OUTPUTS::request& req, COMMAND_RPC_GET_OUTPUTS::response& res);
+    virtual bool handle_get_transactions(int command, const COMMAND_RPC_GET_TRANSACTIONS::request& req, COMMAND_RPC_GET_TRANSACTIONS::response& res);
+    virtual bool handle_get_blocks(int command, const COMMAND_RPC_GET_BLOCKS_FAST::request& req, COMMAND_RPC_GET_BLOCKS_FAST::response& res);
+    virtual bool handle_get_blocks_by_height(int command, const COMMAND_RPC_GET_BLOCKS_BY_HEIGHT::request& req, COMMAND_RPC_GET_BLOCKS_BY_HEIGHT::response& res);
+    virtual bool handle_get_hashes(int command, const COMMAND_RPC_GET_HASHES_FAST::request& req, COMMAND_RPC_GET_HASHES_FAST::response& res);
+    virtual bool handle_get_transaction_pool_hashes(int command, const COMMAND_RPC_GET_TRANSACTION_POOL_HASHES::request& req, COMMAND_RPC_GET_TRANSACTION_POOL_HASHES::response& res);
+    virtual bool handle_is_key_image_spent(int command, const COMMAND_RPC_IS_KEY_IMAGE_SPENT::request& req, COMMAND_RPC_IS_KEY_IMAGE_SPENT::response& res);
+    virtual bool handle_send_raw_tx(int command, const COMMAND_RPC_SEND_RAW_TX::request& req, COMMAND_RPC_SEND_RAW_TX::response& res);
+    //virtual bool handle_get_output_histogram(int command, const COMMAND_RPC_GET_OUTPUT_HISTOGRAM::request& req, COMMAND_RPC_GET_OUTPUT_HISTOGRAM::response& res, epee::json_rpc::error& error_resp);
     //----------------- i_connection_filter  --------------------------------------------------------
     virtual bool is_remote_ip_allowed(uint32_t adress);
     //-----------------------------------------------------------------------------------------------
